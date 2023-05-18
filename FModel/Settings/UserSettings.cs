@@ -226,6 +226,13 @@ namespace FModel.Settings
             set => SetProperty(ref _imageMergerMargin, value);
         }
 
+        private bool _readScriptData;
+        public bool ReadScriptData
+        {
+            get => _readScriptData;
+            set => SetProperty(ref _readScriptData, value);
+        }
+
         // <gameDirectory as string, settings>
         // can't refactor to use this data layout for everything
         // because it will wipe old user settings that relies on FGame
@@ -264,7 +271,7 @@ namespace FModel.Settings
             {FGame.PortalWars, Constants._NO_PRESET_TRIGGER},
             {FGame.Gameface, Constants._NO_PRESET_TRIGGER},
             {FGame.Athena, Constants._NO_PRESET_TRIGGER},
-            {FGame.PandaGame, Constants._NO_PRESET_TRIGGER},
+            {FGame.MultiVersus, Constants._NO_PRESET_TRIGGER},
             {FGame.Hotta, Constants._NO_PRESET_TRIGGER},
             {FGame.eFootball, Constants._NO_PRESET_TRIGGER}
         };
@@ -295,7 +302,7 @@ namespace FModel.Settings
             {FGame.PortalWars, EGame.GAME_UE4_27},
             {FGame.Gameface, EGame.GAME_GTATheTrilogyDefinitiveEdition},
             {FGame.Athena, EGame.GAME_SeaOfThieves},
-            {FGame.PandaGame, EGame.GAME_UE4_26},
+            {FGame.MultiVersus, EGame.GAME_UE4_26},
             {FGame.Hotta, EGame.GAME_TowerOfFantasy},
             {FGame.eFootball, EGame.GAME_UE4_26}
         };
@@ -326,7 +333,7 @@ namespace FModel.Settings
             {FGame.PortalWars, null},
             {FGame.Gameface, null},
             {FGame.Athena, null},
-            {FGame.PandaGame, null},
+            {FGame.MultiVersus, null},
             {FGame.Hotta, null},
             {FGame.eFootball, null}
         };
@@ -357,7 +364,7 @@ namespace FModel.Settings
             {FGame.PortalWars, null},
             {FGame.Gameface, null},
             {FGame.Athena, null},
-            {FGame.PandaGame, null},
+            {FGame.MultiVersus, null},
             {FGame.Hotta, null},
             {FGame.eFootball, null}
         };
@@ -383,7 +390,7 @@ namespace FModel.Settings
             {FGame.PortalWars, null},
             {FGame.Gameface, null},
             {FGame.Athena, null},
-            {FGame.PandaGame, null},
+            {FGame.MultiVersus, null},
             {FGame.Hotta, null},
             {FGame.eFootball, null}
         };
@@ -426,7 +433,7 @@ namespace FModel.Settings
             {FGame.PortalWars, new FEndpoint[]{new (), new ()}},
             {FGame.Gameface, new FEndpoint[]{new (), new ()}},
             {FGame.Athena, new FEndpoint[]{new (), new ()}},
-            {FGame.PandaGame, new FEndpoint[]{new (), new ()}},
+            {FGame.MultiVersus, new FEndpoint[]{new (), new ()}},
             {FGame.Hotta, new FEndpoint[]{new (), new ()}},
             {FGame.eFootball, new FEndpoint[]{new (), new ()}}
         };
@@ -504,7 +511,7 @@ namespace FModel.Settings
             {FGame.PortalWars, new List<CustomDirectory>()},
             {FGame.Gameface, new List<CustomDirectory>()},
             {FGame.Athena, new List<CustomDirectory>()},
-            {FGame.PandaGame, new List<CustomDirectory>()},
+            {FGame.MultiVersus, new List<CustomDirectory>()},
             {FGame.Hotta, new List<CustomDirectory>()},
             {FGame.eFootball, new List<CustomDirectory>()}
         };
