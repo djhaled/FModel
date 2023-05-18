@@ -47,6 +47,12 @@ using OpenTK.Windowing.Desktop;
 using Serilog;
 using SkiaSharp;
 using Application = System.Windows.Application;
+using HarfBuzzSharp;
+using OpenTK.Graphics.OpenGL;
+using CUE4Parse.UE4.Objects.UObject;
+using CUE4Parse.UE4.Assets.Objects;
+using CUE4Parse_Conversion.Materials;
+using System.Linq.Expressions;
 
 namespace FModel.ViewModels;
 
@@ -574,8 +580,10 @@ public class CUE4ParseViewModel : ViewModel
         }
 
         var updateUi = !HasFlag(bulk, EBulkType.Auto);
-        var saveProperties = HasFlag(bulk, EBulkType.Properties);
+        var saveProperties = HasFlag(bulk, EBulkType.Properties) || HasFlag(bulk, EBulkType.Character);
+
         var saveTextures = HasFlag(bulk, EBulkType.Textures);
+        var saveMaterial = HasFlag(bulk, EBulkType.Mateiral);
         TabControl.SelectedTab.ClearImages();
         TabControl.SelectedTab.ResetDocumentText();
         TabControl.SelectedTab.ScrollTrigger = null;
@@ -585,18 +593,60 @@ public class CUE4ParseViewModel : ViewModel
             case "uasset":
             case "umap":
             {
-                var exports = Provider.LoadObjectExports(fullPath); // cancellationToken
-                TabControl.SelectedTab.SetDocumentText(JsonConvert.SerializeObject(exports, Formatting.Indented), saveProperties, updateUi);
-                if (HasFlag(bulk, EBulkType.Properties)) break; // do not search for viewable exports if we are dealing with jsons
+                    var objectPath = fullPath.SubstringBeforeLast('.') + ".o." + fullPath.SubstringAfterLast('.');
+                    var exports = Provider.LoadObjectExports(fullPath); // cancellationToken
 
-                foreach (var e in exports)
-                {
-                    if (CheckExport(cancellationToken, e, bulk))
-                        break;
+                    var finalExports = new List<UObject>();
+                    finalExports.AddRange(exports);
+
+                    var mergedExports = new List<UObject>(); // editor only data
+                    if (Provider.TryLoadPackage(objectPath, out var editorAsset))
+                    {
+                        foreach (var export in exports)
+                        {
+                            var editorData = editorAsset.GetExportOrNull(export.Name + "EditorOnlyData");
+                            if (editorData != null)
+                            {
+                                export.Properties.AddRange(editorData.Properties);
+                                mergedExports.Add(export);
+                            }
+                        }
+
+                        foreach (var editorExport in editorAsset.GetExports())
+                        {
+                            if (!mergedExports.Contains(editorExport))
+                            {
+                                finalExports.Add(editorExport); // TODO: redirect FPackageIndex(s)?
+                            }
+                        }
+                    }
+                    mergedExports.Clear();
+                    var actualFinal = new List<UObject>();
+                    if (HasFlag(bulk, EBulkType.Character))
+                    {
+                        List<UObject> CharMergedExportsv2 = new List<UObject>();
+                        UObject exportObject = exports.ElementAt(0);
+                        exportObject.TryGetValue<UObject[]>(out var BaseParts,"BaseCharacterParts");
+                        exportObject.TryGetValue<UObject>(out var HeroDef, "HeroDefinition");
+                        CharMergedExportsv2.Add(HeroDef);
+                        CharMergedExportsv2.AddRange(BaseParts);
+
+                        // Add the CharMergedExportsv2 to the finalExports list
+                        actualFinal.AddRange(CharMergedExportsv2);
+                    }
+                    actualFinal.Add(finalExports[0]);
+                    TabControl.SelectedTab.SetDocumentText(JsonConvert.SerializeObject(actualFinal, Formatting.Indented), saveProperties, updateUi);
+                    if (HasFlag(bulk, EBulkType.Properties))
+                        break; // do not search for viewable exports if we are dealing with jsons
+
+                    foreach (var e in finalExports)
+                    {
+                        if (CheckExport(cancellationToken, e, bulk))
+                            break;
+                    }
+
+                    break;
                 }
-
-                break;
-            }
             case "upluginmanifest":
             case "uproject":
             case "manifest":
@@ -776,6 +826,7 @@ public class CUE4ParseViewModel : ViewModel
         var isNone = bulk == EBulkType.None;
         var updateUi = !HasFlag(bulk, EBulkType.Auto);
         var saveTextures = HasFlag(bulk, EBulkType.Textures);
+        var saveMaterials = HasFlag(bulk, EBulkType.Mateiral);
         switch (export)
         {
             case UVerseDigest verseDigest when isNone:
@@ -840,6 +891,33 @@ public class CUE4ParseViewModel : ViewModel
                 SaveExport(export, HasFlag(bulk, EBulkType.Auto));
                 return true;
             }
+            case UMaterialFunction when HasFlag(bulk, EBulkType.Mateiral):
+                {
+                    UMaterialFunction material = export as UMaterialFunction;
+                    material.TryGetValue<FStructFallback>(out var Params, "ExpressionCollection");
+                    Params.TryGetValue<UObject[]>(out var Expressions, "Expressions");
+                    var textureExpressions = Expressions.Where(e => e.Name.Contains("Texture")).ToArray();
+                    foreach (var textureExpression in textureExpressions)
+                    {
+                        if (textureExpression.TryGetValue<UTexture2D>(out var ztx, "Texture"))
+                        {
+                            saveTextures = true;
+                            TabControl.SelectedTab.AddImage(ztx, saveTextures, updateUi);
+                        }
+                    }
+
+                    return true;
+                }
+            case UMaterial when HasFlag(bulk, EBulkType.Mateiral):
+                {
+                    int bk = 3;
+                    UMaterial material = export as UMaterial;
+                    //UMaterialFunction material = export as UMaterialFunction;
+                    //material.ReferencedTextures;
+                    // check expressioncollections of mat func and get texture samples
+                    SaveExport(material,true);
+                    return true;
+                }
             default:
             {
                 if (!isNone && !saveTextures) return false;
@@ -908,6 +986,8 @@ public class CUE4ParseViewModel : ViewModel
         else dir = UserSettings.Default.ModelDirectory;
 
         var toSaveDirectory = new DirectoryInfo(dir);
+
+
         if (toSave.TryWriteToDir(toSaveDirectory, out var label, out var savedFilePath))
         {
             Log.Information("Successfully saved {FilePath}", savedFilePath);

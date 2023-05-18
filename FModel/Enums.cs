@@ -161,5 +161,7 @@ public enum EBulkType
     Textures =      1 << 2,
     Meshes =        1 << 3,
     Skeletons =     1 << 4,
-    Animations =    1 << 5
+    Animations =    1 << 5,
+    Character = 1 << 6,
+    Mateiral = 1 << 7
 }

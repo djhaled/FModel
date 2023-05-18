@@ -302,13 +302,18 @@ public class TabItem : ViewModel
     public void SaveProperty(bool updateUi)
     {
         var fileName = Path.ChangeExtension(Header, ".json");
-        var directory = Path.Combine(UserSettings.Default.PropertiesDirectory,
-            UserSettings.Default.KeepDirectoryStructure ? Directory : "", fileName).Replace('\\', '/');
+        var directoryPath = UserSettings.Default.PropertiesDirectory;
+        if (UserSettings.Default.KeepDirectoryStructure)
+        {
+            directoryPath = Path.Combine(directoryPath, Directory);
+        }
+        var directory = Path.Combine(directoryPath, fileName).Replace('\\', '/');
 
         System.IO.Directory.CreateDirectory(directory.SubstringBeforeLast('/'));
 
         Application.Current.Dispatcher.Invoke(() => File.WriteAllText(directory, Document.Text));
         SaveCheck(directory, fileName, updateUi);
+
     }
 
     private void SaveCheck(string path, string fileName, bool updateUi)
@@ -320,7 +325,7 @@ public class TabItem : ViewModel
             {
                 FLogger.AppendInformation();
                 FLogger.AppendText("Successfully saved ", Constants.WHITE);
-                FLogger.AppendLink(fileName, path, true);
+                //FLogger.AppendLink(fileName, path, true);
             }
         }
         else

@@ -76,9 +76,9 @@ public partial class MainWindow
             _discordHandler.Initialize(_applicationView.GameDisplayName);
 
 #if DEBUG
-        // await _threadWorkerView.Begin(cancellationToken =>
-        //     _applicationView.CUE4Parse.Extract(cancellationToken,
-        //         "Discovery/Content/Discovery/Items/Charms/Charm_Skateboard_01/SM_Charm_Skateboard_01_A.uasset"));
+         await _threadWorkerView.Begin(cancellationToken =>
+             _applicationView.CUE4Parse.Extract(cancellationToken,
+                 "FortniteGame/Content/Packages/Fortress_SharedMaterials/Base_Material/Fortress_BaseMaterial.uasset"));
 #endif
     }
 

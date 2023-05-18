@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Linq;
 using System.Threading;
 using FModel.Framework;
@@ -50,12 +50,36 @@ public class RightClickMenuCommand : ViewModelCommand<ApplicationViewModel>
                         contextViewModel.CUE4Parse.Extract(cancellationToken, asset.FullPath, false, EBulkType.Properties);
                     }
                     break;
+                case "Assets_Save_Character":
+                    foreach (var asset in assetItems)
+                    {
+                        Thread.Yield();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        contextViewModel.CUE4Parse.Extract(cancellationToken, asset.FullPath, false, EBulkType.Character);
+                    }
+                    break;
                 case "Assets_Save_Textures":
                     foreach (var asset in assetItems)
                     {
                         Thread.Yield();
                         cancellationToken.ThrowIfCancellationRequested();
                         contextViewModel.CUE4Parse.Extract(cancellationToken, asset.FullPath, false, EBulkType.Textures);
+                    }
+                    break;
+                case "Assets_Save_Functions":
+                    foreach (var asset in assetItems)
+                    {
+                        Thread.Yield();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        contextViewModel.CUE4Parse.Extract(cancellationToken, asset.FullPath, false, EBulkType.Properties);
+                    }
+                    break;
+                case "Assets_Save_Materials":
+                    foreach (var asset in assetItems)
+                    {
+                        Thread.Yield();
+                        cancellationToken.ThrowIfCancellationRequested();
+                        contextViewModel.CUE4Parse.Extract(cancellationToken, asset.FullPath, false, EBulkType.Mateiral);
                     }
                     break;
                 case "Assets_Save_Models":
